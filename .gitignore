@@ -1,0 +1,5 @@
+# macOS
+.DS_Store
+
+# 로컬 백업 (git 자체가 버전관리하므로 저장소에는 올리지 않음)
+*_BACKUP.html
