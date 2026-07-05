@@ -1864,6 +1864,7 @@ ${tmpl.report}</div>`;
       ord.delayMinutes=parseInt(document.getElementById(`ord-d-${oi}`)?.value||'7');
       ord.failMessage=document.getElementById(`ord-fail-${oi}`)?.value.trim()||'';
       (ord.resultSets||[]).forEach((rs,si)=>{
+        if(!rs)return;
         rs.items=rs.items.map((item,ii)=>({
           n:item.n,
           v:document.getElementById(`ord-${oi}-${si}-v-${ii}`)?.value||'',
@@ -1877,7 +1878,10 @@ ${tmpl.report}</div>`;
       sc[key].failMessage=document.getElementById(`${key}-fail`)?.value.trim()||'';
       (sc[key].resultSets||[]).forEach((rs,si)=>{
         const def=key==='vbga'?VBGA_DEF:ABGA_DEF;
-        rs.items=def.map(item=>({n:item.n,v:document.getElementById(`${key}-${si}-${item.n}`)?.value||''}));
+        const items=def.map(item=>({n:item.n,v:document.getElementById(`${key}-${si}-${item.n}`)?.value||''}));
+        if(!rs){ // 비운 회차(채혈량 부족): 값을 입력했으면 채우고, 아니면 null 유지
+          if(items.some(i=>i.v!=='')) sc[key].resultSets[si]={label:'',items};
+        } else { rs.items=items; }
       });
     });
     /* 영상 */
