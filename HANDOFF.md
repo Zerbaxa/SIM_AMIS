@@ -121,6 +121,28 @@ Chemical battery→Blood chemistry 통합, Culture 2회 제한, IMAGING_TEMPLATE
 - **scenario-sepsis-kimyejin (신규)**: 패혈성 쇼크 시나리오 신규 등록. VBGA 3회차(Stage1→3, 마지막 회차는 사용자가 제공한 실측값 pH7.02/pCO2 49/BE-13/HCO3 10/Lactate 8 그대로 사용) + CXR 판독문(report 방식, Rt LLL pneumonia 추정 — **신규 작성, 검토 필요**).
 - **미반영 항목**: 패혈증 시나리오의 CBC(호중구감소 관련 구체 수치)는 근거 자료에 정확한 값이 없어 **의도적으로 비워둠**(추측 입력 금지 원칙). 필요 시 추가 입력 권장. Seizure의 CTA는 앱의 영상 카탈로그에 항목이 없어 별도 오더로 등록 못 함(판독문 텍스트에만 권고 문구 포함).
 
+## 7-2. 2026-07-04 — 중대 버그 수정 + trauma 시나리오 갱신
+
+### ⭐ 중대 버그: SIMEMR_VER 선언 소실 (7/1 작업의 부작용)
+- 7/1 PRESETS 교체 때 배열 바로 뒤의 `const SIMEMR_VER='12';` 선언이 함께 삭제됨.
+- 결과: load()의 `if(ver!==SIMEMR_VER)`에서 ReferenceError → App.init() 중단 → 프리셋 미표시·버튼(나가기 등) 미작동·옛 IndexedDB 데이터만 표시.
+- `const PRESET_IDS=...` 앞에 선언 복구 완료. **교훈: PRESETS splice 후 배열 뒤 코드 보존 여부 반드시 확인.**
+
+### trauma preset 갱신 (사용자 제공 신규 JSON 기반)
+- K 3.5→2.5 (VBGA 2.6과 일관), 검사 delay 단축(CBC 2분/Chem·Coag 4분/VBGA 2분/DXR 3분/CT 6분).
+- pptx('수영 major trauma 시뮬레이션' 폴더)에서 이미지 13장 삽입: CXR/AXR/C-spine/Pelvis 각 1, e-FAST 6(신규), chest CT 2, APCT 1.
+- 구 이름 중복 항목(CT.Chest, CT.Abd&Pelvis) 삭제 → PED 카탈로그명으로 통일. 파일 6.0→7.1MB.
+
+### load() 구조 개선
+1. 깨진/불완전 시나리오 방어(최소 구조 보장) — 하나 깨져도 로드 계속.
+2. 구버전 마이그레이션·매번실행 정규화 블록 try/catch.
+3. **프리셋은 항상 파일 PRESETS로 덮어쓰기** (저장소의 옛 사본 폐기, 사용자 제작 시나리오는 유지). 프리셋 수정본 보관은 JSON 내보내기 사용.
+
+### 검증/디버깅 노하우
+- 브라우저가 옛 내용을 보여줄 때: 파일명 바꾼 사본으로 캐시 완전 우회 가능. macOS 폴더 동기화 지연 있음 → 수정 직후엔 ⌘⇧R.
+- 런타임 에러는 화면에 안 보임 → 임시 진단 배너(window error/unhandledrejection + App.init().then/catch) 패턴 유효.
+- 사용자 IndexedDB에 옛 "패혈증" 초안(uuid id) 잔존 — 필요 없으면 앱에서 삭제.
+
 ## 8. 다음 작업 후보
 - [ ] **투약 기능** 구현 (바로 다음 — 사용자가 계획 알려줄 예정)
 - [ ] 실제 브라우저에서 전체 흐름 육안 확인 (특히 IndexedDB 영속성, 영상 이상 팝업, 미리보기 진입/복귀)
