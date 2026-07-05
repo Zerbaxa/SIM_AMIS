@@ -397,6 +397,8 @@ const PRESETS=[];
 const SIMEMR_VER='12';
 const PRESET_IDS=new Set(PRESETS.map(p=>p.id));
 let OFFICIAL_IDS=new Set(); // scenarios/ 폴더에서 자동 로딩된 공식 시나리오 id
+let OFFICIAL_FILES={};        // 시나리오 id → scenarios/ 파일명 (발행 대상)
+const GH_REPO={owner:'Zerbaxa',repo:'SIM_AMIS',branch:'master',dir:'scenarios/'}; // 웹 발행 대상 저장소
 const S={screen:'select',scenarios:[],session:null,scenario:null,staged:[],_dd:[],_ddIdx:-1,_rc:null,_activeTab:'result'};
 const PACS={stack:[],idx:0};
 
@@ -560,7 +562,7 @@ async function load(){
     for(const f of files){
       try{
         const sc=await fetch(base+f,{cache:'no-cache'}).then(r=>{if(!r.ok)throw 0;return r.json();});
-        if(sc&&sc.id&&sc.patient) loaded.push(sc);
+        if(sc&&sc.id&&sc.patient){ OFFICIAL_FILES[sc.id]=f; loaded.push(sc); }
       }catch(_){}
     }
     if(loaded.length){
@@ -1203,13 +1205,15 @@ ${tmpl.report}</div>`;
         <span style="display:flex;gap:6px">
           <button class="btn btn-gray" onclick="App.importScenario()">📥 가져오기</button>
           <button class="btn btn-gray" onclick="App.exportAll()" ${!S.scenarios.length?'disabled':''}>📤 전체 내보내기</button>
+          <button class="btn btn-sm" style="background:#2b7a3b;color:#fff" title="모든 시나리오를 GitHub에 발행" onclick="App.publishAll()">🚀 전체 발행</button>
+          <button class="btn btn-gray btn-sm" title="저장된 GitHub 토큰 삭제" onclick="App.ghClearToken()">🔑 토큰 초기화</button>
           <button class="btn btn-hdr" onclick="App.newSc()">+ 새 시나리오</button>
         </span>
       </div>
       ${!S.scenarios.length?'<div class="a-card"><div class="a-bd" style="color:var(--muted)">없음</div></div>':S.scenarios.map(sc=>`
         <div class="a-card"><div class="a-hd">
           <span><strong>${esc(sc.name)}</strong><span style="font-weight:400;color:var(--muted);margin-left:8px">${esc(sc.patient.name)} ${esc(fmtAge(sc.patient))}/${esc(sc.patient.sex)}</span></span>
-          <span style="display:flex;gap:6px"><button class="btn btn-gray btn-sm" title="JSON 파일로 내보내기" onclick="App.exportScenario('${sc.id}')">📤 내보내기</button><button class="btn btn-gray btn-sm" onclick="App.editSc('${sc.id}')">✏️ 편집</button><button class="btn btn-red btn-sm" onclick="App.delSc('${sc.id}')">삭제</button></span>
+          <span style="display:flex;gap:6px"><button class="btn btn-sm" style="background:#2b7a3b;color:#fff" title="이 시나리오를 GitHub 저장소에 발행" onclick="App.publishScenario('${sc.id}')">🚀 발행</button><button class="btn btn-gray btn-sm" title="JSON 파일로 내보내기" onclick="App.exportScenario('${sc.id}')">📤 내보내기</button><button class="btn btn-gray btn-sm" onclick="App.editSc('${sc.id}')">✏️ 편집</button><button class="btn btn-red btn-sm" onclick="App.delSc('${sc.id}')">삭제</button></span>
         </div><div class="a-bd" style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted)">
           주소증: ${esc(sc.patient.chiefComplaint||'—')}
           <span style="margin-left:auto;display:flex;gap:5px">
@@ -1229,6 +1233,99 @@ ${tmpl.report}</div>`;
   exportAll(){
     if(!S.scenarios.length){alert('내보낼 시나리오가 없습니다');return;}
     downloadJSON(JSON.stringify(S.scenarios,null,2),'SimAMIS_전체시나리오.json');
+  },
+
+  /* ═══ GitHub 웹 발행 (Contents API) ═══
+     관리자가 편집한 시나리오를 저장소의 scenarios/*.json에 직접 커밋 → Pages 자동 반영.
+     토큰은 코드에 저장하지 않고 발행 시 본인이 입력(브라우저에만 보관). */
+  _ghToken(){ return localStorage.getItem('gh_token')||sessionStorage.getItem('gh_token')||''; },
+  _ghAskToken(){
+    let t=this._ghToken();
+    if(t) return t;
+    t=prompt('GitHub 토큰(Personal Access Token)을 입력하세요.\n· fine-grained PAT · 이 저장소(SIM_AMIS)에 Contents: Read and write 권한');
+    if(!t) return '';
+    t=t.trim();
+    if(confirm('이 토큰을 이 브라우저에 저장할까요?\n[확인] 저장(본인 PC에서만 권장) / [취소] 이번만 사용'))
+      localStorage.setItem('gh_token',t);
+    else sessionStorage.setItem('gh_token',t);
+    return t;
+  },
+  ghClearToken(){ localStorage.removeItem('gh_token'); sessionStorage.removeItem('gh_token'); alert('저장된 GitHub 토큰을 삭제했습니다.'); },
+  _b64utf8(str){ return btoa(unescape(encodeURIComponent(str))); },
+  _fromB64utf8(b){ try{return decodeURIComponent(escape(atob((b||'').replace(/\s/g,''))));}catch(e){return '';} },
+  _slug(sc){
+    let base=(sc.id||sc.name||'scenario').toString().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+    if(!base) base='scenario-'+Date.now();
+    return base+'.json';
+  },
+  async _ghApi(path,method,token,bodyObj){
+    const url='https://api.github.com/repos/'+GH_REPO.owner+'/'+GH_REPO.repo+path;
+    const headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};
+    const opts={method,headers};
+    if(bodyObj){ headers['Content-Type']='application/json'; opts.body=JSON.stringify(bodyObj); }
+    return await fetch(url,opts);
+  },
+  async _ghPutFile(token,file,jsonStr,msg){
+    const p='/contents/'+GH_REPO.dir+file;
+    let sha;
+    const g=await this._ghApi(p+'?ref='+GH_REPO.branch,'GET',token);
+    if(g.status===200){ sha=(await g.json()).sha; }
+    else if(g.status===401){ throw new Error('인증 실패(401) — 토큰이 잘못됨'); }
+    else if(g.status!==404){ throw new Error('조회 실패('+g.status+')'); }
+    const body={message:msg,content:this._b64utf8(jsonStr),branch:GH_REPO.branch};
+    if(sha) body.sha=sha;
+    const r=await this._ghApi(p,'PUT',token,body);
+    if(!r.ok){ const t=await r.text(); throw new Error('커밋 실패('+r.status+') '+t.slice(0,140)); }
+  },
+  async _ghSetManifest(token,files){
+    const p='/contents/'+GH_REPO.dir+'manifest.json';
+    let sha;
+    const g=await this._ghApi(p+'?ref='+GH_REPO.branch,'GET',token);
+    if(g.status===200){ sha=(await g.json()).sha; }
+    const body={message:'Update manifest.json',content:this._b64utf8(JSON.stringify({scenarios:files},null,2)),branch:GH_REPO.branch};
+    if(sha) body.sha=sha;
+    const r=await this._ghApi(p,'PUT',token,body);
+    if(!r.ok) throw new Error('manifest 갱신 실패('+r.status+')');
+  },
+  async _ghAppendManifest(token,file){
+    const p='/contents/'+GH_REPO.dir+'manifest.json';
+    let list=[],sha;
+    const g=await this._ghApi(p+'?ref='+GH_REPO.branch,'GET',token);
+    if(g.status===200){ const j=await g.json(); sha=j.sha;
+      const cur=this._fromB64utf8(j.content);
+      try{ const o=JSON.parse(cur); list=Array.isArray(o)?o:(o.scenarios||[]); }catch(e){}
+    }
+    if(!list.includes(file)) list.push(file);
+    await this._ghSetManifest(token,list);
+  },
+  async publishScenario(id){
+    const sc=S.scenarios.find(s=>s.id===id); if(!sc) return;
+    const token=this._ghAskToken(); if(!token) return;
+    const file=OFFICIAL_FILES[id]||this._slug(sc);
+    const isNew=!OFFICIAL_FILES[id];
+    if(!confirm((isNew?'[새 시나리오] ':'')+'"'+(sc.name||file)+'"\n→ GitHub '+GH_REPO.dir+file+' 에 발행할까요?')) return;
+    try{
+      await this._ghPutFile(token,file,JSON.stringify(sc,null,1),'Publish scenario: '+(sc.name||file));
+      if(isNew){ await this._ghAppendManifest(token,file); OFFICIAL_FILES[id]=file; OFFICIAL_IDS.add(id); }
+      alert('✅ 발행 완료!\n1~2분 후 사이트에 반영됩니다. (안 보이면 ⌘⇧R / Ctrl+Shift+R)');
+    }catch(e){
+      alert('❌ 발행 실패: '+(e.message||e)+'\n\n· 토큰 권한(Contents: Read and write)\n· 만료일\n· 저장소 이름을 확인하세요.\n토큰을 바꾸려면 "🔑 토큰 초기화" 후 다시 시도하세요.');
+    }
+  },
+  async publishAll(){
+    if(!S.scenarios.length){ alert('발행할 시나리오가 없습니다'); return; }
+    const token=this._ghAskToken(); if(!token) return;
+    if(!confirm(S.scenarios.length+'개 시나리오를 모두 GitHub에 발행할까요?')) return;
+    let ok=0; const fail=[];
+    for(const sc of S.scenarios){
+      const file=OFFICIAL_FILES[sc.id]||this._slug(sc);
+      try{ await this._ghPutFile(token,file,JSON.stringify(sc,null,1),'Publish: '+(sc.name||file));
+        OFFICIAL_FILES[sc.id]=file; OFFICIAL_IDS.add(sc.id); ok++;
+      }catch(e){ fail.push((sc.name||file)+': '+(e.message||e)); }
+    }
+    try{ await this._ghSetManifest(token, S.scenarios.map(sc=>OFFICIAL_FILES[sc.id]).filter(Boolean)); }
+    catch(e){ fail.push('manifest: '+(e.message||e)); }
+    alert('발행 완료: '+ok+'/'+S.scenarios.length+'개'+(fail.length?'\n\n실패:\n'+fail.join('\n'):'')+'\n\n1~2분 후 반영(⌘⇧R).');
   },
   importScenario(){
     // 표준 파일 선택창 — 컴퓨터의 어느 폴더든 직접 골라서 불러옴 (여러 파일 동시 가능)
