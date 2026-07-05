@@ -1,5 +1,11 @@
 # macOS
 .DS_Store
 
-# 로컬 백업 (git 자체가 버전관리하므로 저장소에는 올리지 않음)
-*_BACKUP.html
+# 로컬 백업/스탠드얼론본 (git 자체가 버전관리 — 저장소엔 불필요)
+*BACKUP*.html
+*STANDALONE*.html
+
+# 교안 원본 자료 (비공개 유지 — 배포에 불필요)
+Seizure/
+SepticShock/
+수영 major trauma 시뮬레이션/
