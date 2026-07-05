@@ -1,0 +1,292 @@
+{
+ "id": "preset-hanbit",
+ "name": "소아 급성 호흡부전 — 김한빛",
+ "description": "4세 남아. 호흡곤란·발열로 내원. ABGA를 반복 시행하면 환자 상태 변화를 확인할 수 있습니다.",
+ "patient": {
+  "id": "73012345",
+  "name": "김한빛",
+  "age": "4",
+  "sex": "M",
+  "chiefComplaint": "호흡곤란, 발열",
+  "pastHistory": "Developmental delay\n흡인성 폐렴 입원력 (1개월 전)\n위루관 제거 2년 전",
+  "history": "보호자: \"호흡이 힘들어보이고 열도 나서 왔어요\"\n\n초기 소견: 빈호흡, 늑간 함몰, 입술 청색증",
+  "vitals": {
+   "SBP": "96",
+   "DBP": "50",
+   "HR": "161",
+   "RR": "30",
+   "SpO2": "88",
+   "Temp": "40.5"
+  },
+  "mentalStatus": {
+   "type": "GCS",
+   "E": 4,
+   "V": 4,
+   "M": 6,
+   "avpu": "A"
+  }
+ },
+ "labOrders": [
+  {
+   "name": "CBC",
+   "code": "BB0001",
+   "delayMinutes": 2,
+   "resultSets": [
+    {
+     "label": "1회차",
+     "items": [
+      {
+       "n": "WBC",
+       "v": "18.5"
+      },
+      {
+       "n": "RBC",
+       "v": "4.1"
+      },
+      {
+       "n": "Hb",
+       "v": "11.6"
+      },
+      {
+       "n": "Hct",
+       "v": "34"
+      },
+      {
+       "n": "MCV",
+       "v": "82"
+      },
+      {
+       "n": "MCH",
+       "v": "28"
+      },
+      {
+       "n": "MCHC",
+       "v": "32"
+      },
+      {
+       "n": "RDW",
+       "v": "12.5"
+      },
+      {
+       "n": "PLT",
+       "v": "315"
+      },
+      {
+       "n": "E-Neutrophil",
+       "v": "82"
+      },
+      {
+       "n": "E-Lymphocyte",
+       "v": "12"
+      },
+      {
+       "n": "E-Monocyte",
+       "v": "4"
+      },
+      {
+       "n": "E-Eosinophil",
+       "v": "1.5"
+      },
+      {
+       "n": "E-Basophil",
+       "v": "0.5"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Blood chemistry",
+   "code": "BC0030",
+   "delayMinutes": 4,
+   "resultSets": [
+    {
+     "label": "1회차",
+     "items": [
+      {
+       "n": "Total calcium",
+       "v": "9.2"
+      },
+      {
+       "n": "Phosphorus",
+       "v": "3.8"
+      },
+      {
+       "n": "Glucose",
+       "v": "120"
+      },
+      {
+       "n": "Creatinine",
+       "v": "0.5"
+      },
+      {
+       "n": "BUN",
+       "v": "13"
+      },
+      {
+       "n": "Total protein",
+       "v": "6.8"
+      },
+      {
+       "n": "Albumin",
+       "v": "3.8"
+      },
+      {
+       "n": "AST(SGOT)",
+       "v": "35"
+      },
+      {
+       "n": "ALT(SGPT)",
+       "v": "25"
+      },
+      {
+       "n": "ALP",
+       "v": "180"
+      },
+      {
+       "n": "Total bilirubin",
+       "v": "0.8"
+      },
+      {
+       "n": "Na",
+       "v": "138"
+      },
+      {
+       "n": "K",
+       "v": "4.0"
+      },
+      {
+       "n": "Cl",
+       "v": "103"
+      },
+      {
+       "n": "Magnesium",
+       "v": "2.0"
+      },
+      {
+       "n": "eGFR(Schwartz)",
+       "v": "88"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Inflammatory markers",
+   "code": "BD0090",
+   "delayMinutes": 4,
+   "resultSets": [
+    {
+     "label": "1회차",
+     "items": [
+      {
+       "n": "CRP",
+       "v": "7.8"
+      },
+      {
+       "n": "ESR",
+       "v": ""
+      },
+      {
+       "n": "Procalcitonin",
+       "v": "2.1"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "abga": {
+  "delayMinutes": 1,
+  "resultSets": [
+   {
+    "label": "Stage1 (0-5분)",
+    "items": [
+     {
+      "n": "pH",
+      "v": "7.38"
+     },
+     {
+      "n": "pCO2",
+      "v": "38"
+     },
+     {
+      "n": "pO2",
+      "v": "58"
+     },
+     {
+      "n": "HCO3",
+      "v": "22"
+     },
+     {
+      "n": "SaO2",
+      "v": "88"
+     }
+    ]
+   },
+   {
+    "label": "Stage2 (5-10분)",
+    "items": [
+     {
+      "n": "pH",
+      "v": "7.25"
+     },
+     {
+      "n": "pCO2",
+      "v": "55"
+     },
+     {
+      "n": "pO2",
+      "v": "48"
+     },
+     {
+      "n": "HCO3",
+      "v": "23"
+     },
+     {
+      "n": "SaO2",
+      "v": "83"
+     }
+    ]
+   },
+   {
+    "label": "Stage3 (10-15분)",
+    "items": [
+     {
+      "n": "pH",
+      "v": "7.10"
+     },
+     {
+      "n": "pCO2",
+      "v": "72"
+     },
+     {
+      "n": "pO2",
+      "v": "40"
+     },
+     {
+      "n": "HCO3",
+      "v": "21"
+     },
+     {
+      "n": "SaO2",
+      "v": "70"
+     }
+    ]
+   }
+  ]
+ },
+ "vbga": null,
+ "imaging": [
+  {
+   "name": "DXR.Chest (PA/AP)",
+   "delayMinutes": 2,
+   "displayMode": "pages",
+   "images": [],
+   "resultType": "report",
+   "abnormal": true,
+   "report": "CHEST PA/AP\n\nFindings:\nPatchy consolidation with air-bronchogram in the right lower lung zone.\nNo pleural effusion. No pneumothorax.\n\n[ 결  론 ]\nRt. lower lobe pneumonia."
+  }
+ ],
+ "history": "2일 전부터 발열 — 인근 의원에서 항생제를 처방받았으나 호전 없었음. 이후 호흡곤란·발열 악화로 재내원. 119 이송 중 Nasal cannula 3L/min 유지 상태로 도착.\n\n보호자: \"호흡이 힘들어보이고 열도 나서 왔어요\"\n\n초기 소견: 숨을 가쁘게 쉬며 힘들어 보임. 빈호흡, 뚜렷한 늑간 함몰. 입술 청색증, 양볼 홍조."
+}

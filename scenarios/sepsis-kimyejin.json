@@ -1,0 +1,97 @@
+{
+ "id": "scenario-sepsis-kimyejin",
+ "name": "소아 패혈성 쇼크 — 김예진 (5세/F)",
+ "description": "5세 여아. B-cell ALL 항암치료 중 발열·쳐짐으로 내원. 수액 저항성 패혈성 쇼크로 진행 — 승압제 시작 판단이 핵심.",
+ "patient": {
+  "id": "23110788",
+  "name": "김예진",
+  "age": "5",
+  "ageMonths": 0,
+  "sex": "F",
+  "chiefComplaint": "발열, 쳐짐",
+  "pastHistory": "B-cell 급성림프모구백혈병(ALL)으로 항암치료 중",
+  "history": "항암치료 중인 환아. 내원 1일 전부터 발열 시작, 이후 활동량이 눈에 띄게 줄고 처지는 모습을 보여 내원.\n\n보호자: \"애가 열이 계속 나고 축 처져있어요\"",
+  "vitals": {
+   "SBP": "92",
+   "DBP": "60",
+   "HR": "170",
+   "RR": "42",
+   "SpO2": "94",
+   "Temp": "39.5"
+  },
+  "mentalStatus": {
+   "type": "AVPU",
+   "E": 4,
+   "V": 5,
+   "M": 6,
+   "avpu": "A"
+  }
+ },
+ "labOrders": [
+  {
+   "name": "CBC",
+   "code": "BB0001",
+   "delayMinutes": 2,
+   "resultSets": [],
+   "failMessage": "채혈 실패 — 말초 IV 미확보 + Port 역류·push 불가로 검체 채취 안 됨.\nIO 또는 중심정맥로(central line) 확보 후 재시도 요망."
+  },
+  {
+   "name": "Inflammatory markers",
+   "code": "",
+   "delayMinutes": 4,
+   "resultSets": [],
+   "failMessage": "채혈 실패 — 말초 IV 미확보 + Port 역류·push 불가로 검체 채취 안 됨.\nIO 또는 중심정맥로(central line) 확보 후 재시도 요망."
+  },
+  {
+   "name": "Culture.Blood",
+   "code": "",
+   "delayMinutes": 5,
+   "isCulture": true,
+   "resultSets": []
+  }
+ ],
+ "abga": null,
+ "vbga": {
+  "delayMinutes": 1,
+  "failMessage": "채혈량 부족 — 재채혈 후 재검 요망",
+  "resultSets": [
+   null,
+   {
+    "label": "재채혈 후 (BP 저하 시)",
+    "items": [
+     {
+      "n": "pH",
+      "v": "7.02"
+     },
+     {
+      "n": "pCO2",
+      "v": "49"
+     },
+     {
+      "n": "HCO3",
+      "v": "10"
+     },
+     {
+      "n": "BE",
+      "v": "-13"
+     },
+     {
+      "n": "Lactate",
+      "v": "8"
+     }
+    ]
+   }
+  ]
+ },
+ "imaging": [
+  {
+   "name": "DXR.Chest (PA/AP)",
+   "delayMinutes": 2,
+   "displayMode": "pages",
+   "images": [],
+   "resultType": "report",
+   "abnormal": true,
+   "report": "CHEST PA/AP\n\nFindings:\nPatchy consolidation in the right lower lung zone, compatible with pneumonia.\nNo pleural effusion. No pneumothorax.\n\n[ 결  론 ]\nRt. lower lobe pneumonia — possible septic focus."
+  }
+ ]
+}

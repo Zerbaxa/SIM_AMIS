@@ -1,0 +1,8 @@
+{
+  "scenarios": [
+    "respiratory-hanbit.json",
+    "trauma-suyeong.json",
+    "seizure-parkgeon.json",
+    "sepsis-kimyejin.json"
+  ]
+}

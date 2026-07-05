@@ -1,6 +1,6 @@
 # SIM AMIS — 작업 핸드오프 (다음 세션용)
 
-> 마지막 업데이트: 2026-06-06 / SimEMR **v12** / 작성: Claude
+> 마지막 업데이트: 2026-07-01 / SimEMR **v12** / 작성: Claude
 > 새 세션 시작 시 이 문서 + `memory/project_sim_amis.md`를 먼저 읽으면 됨.
 
 ---
@@ -108,6 +108,18 @@ Chemical battery→Blood chemistry 통합, Culture 2회 제한, IMAGING_TEMPLATE
 - 버전 올릴 때 `index.html` 내 파일명 2곳 함께 수정. 캐시 시 ⌘⇧R 안내.
 
 ---
+
+## 7-1. 2026-07-01 — 시나리오 4종 등록/업데이트 (다른 Cowork 프로젝트에서 진행)
+
+> 별도 프로젝트("전공의 시뮬레이션 교육")에서 정리한 `00_시나리오_데이터_통합정리.xlsx`를 근거로 PRESETS 갱신.
+> 백업: `SimEMR_v12_BACKUP_pre_4scenarios.html` (이번 변경 직전 상태).
+> 변경 후 `new Function(스크립트 전체)` 문법 검사 통과 + PRESETS 파싱/이미지 개수 재확인 완료.
+
+- **preset-hanbit (호흡부전·김한빛)**: history 보강, 검사가 원자료상 VBGA가 아니라 **ABGA**였음을 확인해 `vbga→null, abga`에 Stage1~3 3회차(pH/pCO2/pO2/HCO3/SaO2)로 이전. 기존 CXR 항목(이미지 없음)에 판독문(report, Rt LLL pneumonia) 추가.
+- **scenario-trauma-suyeong (Major Trauma·허○엘)**: Blood chemistry의 **K 값을 2.5→3.5로 정정**(xlsx 확인값 Na/K 138/3.5). 실제 업로드된 X-ray/CT 이미지 6종(7장)은 **손대지 않음**.
+- **scenario-seizure-parkgeon (신규)**: Seizure→Refractory SE→ICH 시나리오 신규 등록. VBGA 1회차(Established SE) + ABGA 1회차(RSI 후, vent 조절) + Brain CT 판독문(report 방식, 실제 영상 없음 — 우측 측두엽 ICH/AVM 의심 소견 텍스트).
+- **scenario-sepsis-kimyejin (신규)**: 패혈성 쇼크 시나리오 신규 등록. VBGA 3회차(Stage1→3, 마지막 회차는 사용자가 제공한 실측값 pH7.02/pCO2 49/BE-13/HCO3 10/Lactate 8 그대로 사용) + CXR 판독문(report 방식, Rt LLL pneumonia 추정 — **신규 작성, 검토 필요**).
+- **미반영 항목**: 패혈증 시나리오의 CBC(호중구감소 관련 구체 수치)는 근거 자료에 정확한 값이 없어 **의도적으로 비워둠**(추측 입력 금지 원칙). 필요 시 추가 입력 권장. Seizure의 CTA는 앱의 영상 카탈로그에 항목이 없어 별도 오더로 등록 못 함(판독문 텍스트에만 권고 문구 포함).
 
 ## 8. 다음 작업 후보
 - [ ] **투약 기능** 구현 (바로 다음 — 사용자가 계획 알려줄 예정)
