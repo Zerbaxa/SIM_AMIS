@@ -78,6 +78,34 @@
      {
       "n": "Lactate",
       "v": "8"
+     },
+     {
+      "n": "pO2",
+      "v": "32"
+     },
+     {
+      "n": "SvO2",
+      "v": "62"
+     },
+     {
+      "n": "Na",
+      "v": "138"
+     },
+     {
+      "n": "K",
+      "v": "4.6"
+     },
+     {
+      "n": "iCa",
+      "v": "1.08"
+     },
+     {
+      "n": "Glucose",
+      "v": "124"
+     },
+     {
+      "n": "Hct",
+      "v": "29"
      }
     ]
    }
@@ -90,8 +118,17 @@
    "displayMode": "pages",
    "images": [],
    "resultType": "report",
+   "abnormal": false,
+   "report": "CHEST PA/AP\n\nFindings:\nBoth lungs are clear. No active lung lesion, consolidation, or pleural effusion.\nThe cardiomediastinal silhouette is within normal limits.\nNo acute bony abnormality.\n\n[ 결  론 ]\nNo active lung lesion."
+  },
+  {
+   "name": "Single focused US (1point)",
+   "delayMinutes": 3,
+   "displayMode": "stack",
+   "images": [],
+   "resultType": "report",
    "abnormal": true,
-   "report": "CHEST PA/AP\n\nFindings:\nPatchy consolidation in the right lower lung zone, compatible with pneumonia.\nNo pleural effusion. No pneumothorax.\n\n[ 결  론 ]\nRt. lower lobe pneumonia — possible septic focus."
+   "report": "Single focused US (1 point)\n\nFindings:\nThe IVC is small with near-complete inspiratory collapse (>50%).\nNo pericardial effusion.\n\n[ 결  론 ]\nCollapsed IVC. No pericardial effusion."
   }
  ]
 }

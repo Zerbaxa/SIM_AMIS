@@ -331,6 +331,7 @@ const IMAGING_TEMPLATES={
   'Multiple focused US (in trauma)':{delay:3,tl:'US',tc:'dt-us',report:'Multiple focused US (in trauma)\n\nFindings:\nPerihepatic space: No free fluid.\nPerisplenic space: No free fluid.\nPelvic cavity: No free fluid.\nPericardium: No pericardial effusion.\n\n[ 결  론 ]\nNegative. No intraabdominal or pericardial free fluid.'},
   'US.Upper abdomen':{delay:3,tl:'US',tc:'dt-us',report:'US, Upper abdomen\n\nFindings:\nLiver: Normal size and echogenicity. No focal lesion.\nGallbladder: Normal. No stone or wall thickening. CBD not dilated.\nPancreas: Normal.\nSpleen: Normal size. No focal lesion.\nKidneys: Normal size and echogenicity bilaterally. No hydronephrosis.\nNo free fluid.\n\n[ 결  론 ]\nNo acute upper abdominal pathology.'},
   'CT.Brain angiography (CTA)':{delay:10,tl:'CT',tc:'dt-ct',report:'CT Angiography, Brain\n\nFindings:\nNo aneurysm or arteriovenous malformation.\nThe major intracranial arteries show normal caliber and enhancement.\nNo vascular occlusion or significant stenosis.\n\n[ 결  론 ]\nNo vascular abnormality.'},
+  'Single focused US (1point)':{delay:3,tl:'US',tc:'dt-us',report:'Single focused US (1 point)\n\nFindings:\nNo pericardial effusion. IVC normal caliber with respiratory variation.\n\n[ 결  론 ]\nNo significant abnormality.'},
   'MRI.Brain (without enhance)':{delay:8,tl:'MRI',tc:'dt-mri',report:'MRI, Brain (without enhance)\n\nFindings:\nNo abnormal signal intensity on DWI, FLAIR, T2, or T1 sequences.\nNo mass, hemorrhage, or midline shift.\nThe ventricles and sulci are within normal limits.\n\n[ 결  론 ]\nNo acute intracranial abnormality.'},
 };
 
@@ -341,8 +342,8 @@ const IMG_REGION_MAP={
   '머리(Head)':['XR.Skull','CT.Brain (PED)(without enhance)','CT.Brain angiography (CTA)','MRI.Brain (without enhance)'],
   '얼굴(Face)':['CT.Facial bone 3D (without enhance)'],
   '경추(C-spine)':['XR.C-spine','CT.C-spine (PED)(without enhance)'],
-  '흉부(Chest)':['DXR.Chest (PA/AP)','CT.Chest (PED)(with enhance)'],
-  '복부(Abdomen)':['XR.Abdomen','US.Upper abdomen','CT.Abdomen & Pelvis (PED)(with enhance)','Multiple focused US (in trauma)'],
+  '흉부(Chest)':['DXR.Chest (PA/AP)','CT.Chest (PED)(with enhance)','Single focused US (1point)'],
+  '복부(Abdomen)':['XR.Abdomen','US.Upper abdomen','CT.Abdomen & Pelvis (PED)(with enhance)','Multiple focused US (in trauma)','Single focused US (1point)'],
   '골반(Pelvis)':['XR.Pelvis','CT.Abdomen & Pelvis (PED)(with enhance)'],
   '요추(L-spine)':['XR.L-spine'],
   '전신(Whole body)':['CT.Whole body trauma dynamic (with enhance)'],
@@ -572,6 +573,13 @@ async function load(){
       S._loadMode='auto';
     }else{ S._loadMode='local'; }
   }catch(e){ S._loadMode='local'; }
+  // 폴백: fetch 실패(로컬 file://) + 내장 PRESETS 있으면 그것으로 로딩 (standalone 단일본용)
+  if(S._loadMode==='local' && PRESETS.length){
+    OFFICIAL_IDS=new Set(PRESETS.map(p=>p.id));
+    S.scenarios=S.scenarios.filter(s=>!OFFICIAL_IDS.has(s.id));
+    PRESETS.forEach(p=>S.scenarios.push(JSON.parse(JSON.stringify(p))));
+    S._loadMode='embedded';
+  }
   try{
   // 매번 실행: sc.imaging 항목명 정규화 (FAST → Multiple focused US 등)
   const imgRenameMap={'FAST':'Multiple focused US (in trauma)'};

@@ -1,7 +1,8 @@
 # SIM AMIS — 작업 핸드오프 (다음 세션용)
 
-> 마지막 업데이트: 2026-07-01 / SimEMR **v12** / 작성: Claude
+> 마지막 업데이트: 2026-07-06 / SimEMR **v12** / 작성: Claude
 > 새 세션 시작 시 이 문서 + `memory/project_sim_amis.md`를 먼저 읽으면 됨.
+> ⭐ **구조가 바뀌었습니다**: 단일 HTML → **껍데기 HTML + 외부 JSON**. 최신 요약은 아래 **7-3장**부터 읽을 것.
 
 ---
 
@@ -15,21 +16,27 @@
 
 ---
 
-## 2. 파일 현황 (`/Users/minkyo/Documents/Claude/Projects/SIM_AMIS/`)
+## 2. 파일 현황 (`/Users/minkyo/Documents/Claude/Projects/SIM_AMIS/`) — 2026-07-06 개편
 
 | 파일 | 설명 |
 |---|---|
-| **SimEMR_v12.html** | ⭐ 현재 작업 파일 (최신, 약 6MB) |
-| SimEMR_v12_BACKUP.html | 백업 (이번 세션 대규모 작업 직전 상태) |
-| **README.md** | 시나리오 제작자용 가이드 (기능·JSON 구조·AI 자동채우기) |
-| **AI_시나리오_프롬프트.md** | AI(Claude/Gemini)에 통째로 복사해 줄 자체완결형 프롬프트 |
-| index.html | 배포용 루트 진입점 (→ SimEMR_v12.html 리다이렉트) |
-| .nojekyll / .gitignore | GitHub Pages 설정 (Jekyll 비활성 / 백업·DS_Store 제외) |
-| HANDOFF.md | 이 문서 |
+| **SimEMR_v12.html** | ⭐ 껍데기(플레이어) 약 **0.15MB**. 시나리오 데이터 없음. `scenarios/*.json`을 fetch |
+| **scenarios/manifest.json** | 로딩할 시나리오 파일 목록 `{scenarios:[...]}` |
+| **scenarios/respiratory-hanbit.json** | 김한빛 호흡부전 (CXR 사진 1장 포함) |
+| **scenarios/trauma-suyeong.json** | 허○엘 major trauma (영상 다수, ~6.9MB) |
+| **scenarios/seizure-parkgeon.json** | 박○건 seizure→ICH (Brain CT/DSA 사진) |
+| **scenarios/sepsis-kimyejin.json** | 김예진 패혈성 쇼크 |
+| **scenarios/_all.json** | 위 4개 통합본 (로컬 file:// 미리보기용 "가져오기" 대상) |
+| **SimEMR_v12_STANDALONE.html** | ⭐ **JSON 없이 단독 실행**되는 단일본 (PRESETS에 4개 임베드, ~8MB). gitignore됨(로컬 전용) |
+| SimEMR_v12_BACKUP*.html | 백업 (gitignore됨) |
+| **README.md** | 시나리오 제작자 가이드 (7-3 반영 갱신됨) |
+| index.html | 루트 진입점 (→ SimEMR_v12.html) |
+| .nojekyll / .gitignore | Pages 설정 / 교안 원본·백업 제외 |
 
-> ⚠️ 파일 약 6MB(프리셋 base64 이미지 한 줄). **전체 Read/Write 금지** → Edit(고유 문자열) 또는 bash targeted 수정.
-> ⚠️ 큰 변경 전 백업: `cp SimEMR_v12.html SimEMR_v12_BACKUP.html`
-> ⚠️ 저장소 폴더가 동기화 마운트라 **샌드박스에서 git 쓰기 불가**(Operation not permitted) → git은 맥 터미널에서 직접.
+> ⚠️ **시나리오 데이터는 이제 `scenarios/*.json`이 정본.** 값 수정은 그 JSON을 직접 편집(bash node). HTML의 PRESETS는 비어있음(`[]`).
+> ⚠️ **JSON 편집 후 반드시 `_all.json` 재생성** + (standalone 필요 시) STANDALONE 재빌드.
+> ⚠️ 저장소 폴더가 동기화 마운트라 **샌드박스에서 git 쓰기 불가** → git은 맥 터미널에서 직접.
+> ⚠️ 큰 변경 전 백업: `cp SimEMR_v12.html SimEMR_v12_BACKUP.html` (BACKUP은 gitignore됨).
 
 ---
 
@@ -143,11 +150,59 @@ Chemical battery→Blood chemistry 통합, Culture 2회 제한, IMAGING_TEMPLATE
 - 런타임 에러는 화면에 안 보임 → 임시 진단 배너(window error/unhandledrejection + App.init().then/catch) 패턴 유효.
 - 사용자 IndexedDB에 옛 "패혈증" 초안(uuid id) 잔존 — 필요 없으면 앱에서 삭제.
 
+## 7-3. 2026-07-06 — ⭐ 아키텍처 대전환 + 웹 발행 + 전체 시나리오 확정
+
+### A. 구조 전환: 단일 HTML → 껍데기 + 외부 JSON (7.8MB→0.15MB)
+- HTML의 `const PRESETS`를 **빈 배열 `[]`**로. 시나리오는 `scenarios/*.json`으로 분리 + `manifest.json`.
+- **load() 재작성**: `fetch('scenarios/manifest.json')`→각 json 로딩. 성공 시 `S._loadMode='auto'`(폴더가 정본, 매 로드 덮어씀), 실패(file://·오프라인) `'local'`.
+  - `OFFICIAL_IDS`(fetch된 시나리오 id 집합)로 save()의 이미지-strip 판단 (기존 PRESET_IDS 대체).
+  - **폴백**: `_loadMode==='local'` && `PRESETS.length` 있으면 내장 PRESETS로 로딩 → `'embedded'`. → **STANDALONE 파일이 JSON 없이 작동하는 원리**.
+- 로컬 file:// = 자동로딩 불가 → `_localHintBanner()`로 "_all.json 가져오기" 안내(embedded 모드에선 배너 안 뜸).
+- **배포/공유 = GitHub Pages URL 하나** (`https://zerbaxa.github.io/SIM_AMIS/`). 접속 전원 자동 로딩.
+- git push 시 대용량(≈18MB) → HTTP 400 발생 → **`git config http.postBuffer 524288000`**로 해결(설정 완료됨).
+- GitHub Pages 활성화 완료 (Settings→Pages, Source: master /root).
+
+### B. 🚀 웹 발행 기능 (교육자 모드, GitHub Contents API)
+- 시나리오 카드마다 **🚀 발행**, 툴바 **🚀 전체 발행** + **🔑 토큰 초기화**.
+- `publishScenario/publishAll`: 편집본을 `scenarios/*.json`에 직접 커밋(신규는 manifest 자동 추가). `GH_REPO={owner:'Zerbaxa',repo:'SIM_AMIS',branch:'master',dir:'scenarios/'}`.
+- 토큰(fine-grained PAT, Contents:R/W)은 발행 시 입력 → localStorage/sessionStorage(코드에 저장 안 함).
+- **주의**: 앱 편집+저장은 브라우저(IndexedDB)에만 남고 새로고침 시 폴더 원본으로 복귀. 모두 반영하려면 **발행** 또는 JSON 직접 수정 후 push.
+
+### C. STANDALONE 단일본
+- `SimEMR_v12_STANDALONE.html` = 껍데기 HTML + PRESETS에 4개 임베드. **JSON 폴더 없이 더블클릭 실행**. gitignore(로컬 전용).
+- 재빌드: thin HTML 복사 → `const PRESETS=[]`를 4개 시나리오 JSON으로 치환 (build_standalone 방식).
+
+### D. 저장 버그 수정 (중요)
+- saveSc의 BGA/labOrder 저장 루프가 **null 회차**(예: sepsis VBGA 1회차)에서 `rs.items` 접근 → TypeError → 저장 전체 중단(이름 변경도 안 됨). **null 가드 추가**(빈 회차는 값 입력 시만 채우고 아니면 null 유지). renderBGAed·FiO2 루프도 null 가드 있음.
+
+### E. 검사 대기시간 전면 표준화 (10분 진행 기준)
+VBGA/ABGA 1분 · CBC 2분 · Chem/Coag/Inflammatory 4분 · simple XR 2분 · FAST 3분 · CT 8분 · CTA 10분. PRESETS + `getUnsetDelay`(미설정 자동) + IMAGING_TEMPLATES 모두 통일.
+
+### F. 신규 영상 카탈로그 항목 (IMAGING_TEMPLATES + IMG_REGION_MAP)
+- `CT.Brain angiography (CTA)` (머리) — seizure용.
+- `Single focused US (1point)` (흉부+복부, US, 3분) — sepsis POCUS용. 정상 템플릿 있음.
+
+### G. 전체 시나리오 값 확정 (원칙: **사진 있으면 판독문 X, 사진 없으면 판독문 O**)
+- **호흡기(한빛)**: ABGA 3회차 빈칸 채움(BE 계산, Na/K/Glu/Hct는 CBC·chem 참고 ±10%, Lactate 저산소 악화로 1.9→4.7). **CXR 실제 사진 1장 삽입**(resultType image, 판독문 미표시).
+- **trauma(허○엘)**: CBC 빈칸(MCV/MCH/MCHC/RDW+5분획)을 사용자 제공 CBC값으로. 사진 있는 검사(CT·FAST·XR)는 판독문 X. **US.Upper abdomen(사진X)** = hepatorenal recess free fluid + CT 권고 판독문. **CT.Whole body trauma dynamic(사진X)** = Chest(hemothorax+multiple lung contusion)+Abd(liver laceration+active bleeding+hemoperitoneum) 통합 판독문.
+- **seizure(박○건)**: BGA **전부 VBGA 3회차**로 통일(ABGA 제거). 빈칸 채움. CBC 완전 채움(WBC18.5/Hb12.3/Plt320 + 나머지 적당히). Blood chemistry에 electrolyte 반영. **Brain CT ← 축상+관상 2장 / CTA ← DSA 1장**으로 이미지 재분류(둘 다 사진만, 판독문 X).
+- **sepsis(김예진)**: VBGA **1회차=null(채혈량 부족)/2회차=실측값**(첫 처방 실패→재검 연출). VBGA2 빈칸 채움. CBC/Inflammatory=채혈실패(failMessage). Culture.Blood=배양중. Chest PA=정상소견. **Single focused US(1point)=Collapsed IVC 소견만**(해석 힌트 없음).
+
+### H. 저장소 정리
+- `.gitignore`에 `*BACKUP*.html`, `*STANDALONE*.html`, 교안 원본 폴더(`Seizure/`,`SepticShock/`,`수영 major trauma 시뮬레이션/`) 추가 → 공개 저장소엔 배포 파일만.
+- `00_시뮬레이션 도입.pptx`는 저장소에 포함(공개).
+
+---
+
 ## 8. 다음 작업 후보
-- [ ] **투약 기능** 구현 (바로 다음 — 사용자가 계획 알려줄 예정)
-- [ ] 실제 브라우저에서 전체 흐름 육안 확인 (특히 IndexedDB 영속성, 영상 이상 팝업, 미리보기 진입/복귀)
-- [ ] (옵션) 미리보기 중 EMR 상단 "세션 종료" 버튼 숨김 처리
-- [보류] 소아 정상 참고치(lo/hi 나이대별) / VBGA AirDrop 전송
+- [ ] **투약 기능** 구현 (사용자가 계획 알려줄 예정)
+- [ ] (옵션) 영상 회차(stage) 기능 — 재처방 시 다른 판독(예: POCUS collapsed→plethora). 현재 영상은 재처방 차단(2번째 "검사 불가").
+- [ ] (옵션) 발행 기능의 교육자 편집기 UI(회차/이미지) 보강, `_all.json` 자동 갱신 발행에 포함
+- [ ] 실제 브라우저 전체 흐름 육안 확인
+- [보류] 소아 정상 참고치(lo/hi 나이대별)
+
+### ⚙️ 시나리오 값 수정 워크플로우 (중요)
+1. `scenarios/<파일>.json` 직접 편집 (bash node) → 2. `_all.json` 재생성 → 3. (필요 시) STANDALONE 재빌드 → 4. 맥 터미널 `git add -A && git commit && git push` → 5. 1~2분 후 Pages 반영(⌘⇧R).
 
 ---
 
